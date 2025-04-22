@@ -39,15 +39,13 @@ export function createWidget(fetchScheduleResult: FetchScheduleResult) {
     const title = widget.addText('🏀 NBA Games');
     title.font = Font.boldSystemFont(16);
     title.textColor = Color.white();
-    title.centerAlignText();
-    widget.addSpacer(8);
+    widget.addSpacer(4);
 
     // Updated Time
     const updateTime = widget.addText(`Updated at ${dayjs().format('MM-DD HH:mm')}`);
     updateTime.font = Font.systemFont(12);
     updateTime.textColor = Color.gray();
-    updateTime.centerAlignText();
-    widget.addSpacer(4);
+    widget.addSpacer(12);
 
 
     if (fetchScheduleResult.isErr()) {
@@ -61,7 +59,6 @@ export function createWidget(fetchScheduleResult: FetchScheduleResult) {
         }
         errorText.font = Font.systemFont(12);
         errorText.textColor = Color.red();
-        errorText.centerAlignText();
     } else {
         for (const [scheduleDay, games] of Object.entries(fetchScheduleResult.value).slice(0, 3)) {
             addGamesSection(widget, games, scheduleDay);
