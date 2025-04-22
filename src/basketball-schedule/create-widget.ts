@@ -63,7 +63,7 @@ export function createWidget(fetchScheduleResult: FetchScheduleResult) {
         errorText.textColor = Color.red();
         errorText.centerAlignText();
     } else {
-        for (let [scheduleDay, games] of Object.entries(fetchScheduleResult.value).slice(0, 3)) {
+        for (const [scheduleDay, games] of Object.entries(fetchScheduleResult.value).slice(0, 3)) {
             addGamesSection(widget, games, scheduleDay);
         }
     }

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const gameSchema = z.object({
-  date: z.string().datetime(),
+  date: z.string(),
   name: z.string(),
   shortName: z.string(),
 });

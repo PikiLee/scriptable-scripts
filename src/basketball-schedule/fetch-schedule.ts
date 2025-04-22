@@ -54,7 +54,7 @@ export async function fetchSchedule(date: Date): Promise<FetchScheduleResult> {
       }
 
       return ok(schedule);
-    } catch (error) {
+    } catch {
         return err(new RequestError());
     }
   }
