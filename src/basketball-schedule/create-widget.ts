@@ -43,7 +43,7 @@ export function createWidget(fetchScheduleResult: FetchScheduleResult) {
     widget.addSpacer(8);
 
     // Updated Time
-    const updateTime = widget.addText(`Updated: ${dayjs().format('DD HH:mm')}`);
+    const updateTime = widget.addText(`Updated at ${dayjs().format('MM-DD HH:mm')}`);
     updateTime.font = Font.systemFont(12);
     updateTime.textColor = Color.gray();
     updateTime.centerAlignText();
