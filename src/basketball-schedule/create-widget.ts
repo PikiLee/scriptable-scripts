@@ -1,3 +1,4 @@
+import { FetchScheduleResult } from "./fetch-schedule";
 import { IGame } from "./types";
 import dayjs from "dayjs";
 
@@ -30,9 +31,7 @@ function addGamesSection(widget: ListWidget, games: IGame[], date: string) {
   }
 
 // Function to create the widget
-export function createWidget(schedule: {
-  [key: string]: IGame[]
-}) {
+export function createWidget(fetchScheduleResult: FetchScheduleResult) {
     const widget = new ListWidget();
     widget.backgroundColor = new Color('#1E1E1E');
     
@@ -49,10 +48,26 @@ export function createWidget(schedule: {
     updateTime.textColor = Color.gray();
     updateTime.centerAlignText();
     widget.addSpacer(4);
-    
-    for (let [scheduleDay, games] of Object.entries(schedule).slice(0, 3)) {
-        addGamesSection(widget, games, scheduleDay);
+
+
+    if (fetchScheduleResult.isErr()) {
+        const error = fetchScheduleResult.error;
+        let errorText;
+        if (error.tag === "VALIDATION_ERROR") {
+            errorText = widget.addText('Invalid schedule data');
+            console.log(error.zodError.message);
+        } else {
+            errorText = widget.addText('Error fetching schedule');
+        }
+        errorText.font = Font.systemFont(12);
+        errorText.textColor = Color.red();
+        errorText.centerAlignText();
+    } else {
+        for (let [scheduleDay, games] of Object.entries(fetchScheduleResult.value).slice(0, 3)) {
+            addGamesSection(widget, games, scheduleDay);
+        }
     }
+
   
     // set refresh interval to 6 hours
     widget.refreshAfterDate = new Date(Date.now() + 6 * 60 * 60 * 1000)

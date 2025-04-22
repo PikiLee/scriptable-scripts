@@ -3,16 +3,11 @@ import { fetchSchedule } from "basketball-schedule/fetch-schedule";
 
 async function run() {
   const today = new Date();
-  // Fetch schedules
-  const schedule = await fetchSchedule(today);
   
-  if (!schedule) {
-    console.error('No schedule data available');
-    return;
-  }
-
+  const fetchScheduleResult = await fetchSchedule(today);
+  
   const widget = createWidget(
-    schedule
+    fetchScheduleResult
   );
 
   Script.setWidget(widget);
