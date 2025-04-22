@@ -2,6 +2,7 @@ import typescript from "@rollup/plugin-typescript";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
 import addFileIconSettings from "./rollup-plugin-add-file-icon-settings";
+import commonjs from '@rollup/plugin-commonjs';
 
 // https://github.com/rollup/rollup/issues/703#issuecomment-224984436 <-- passing args into config file
 const ENTRY_FILE_PATH = process.env.file_path;
@@ -13,7 +14,7 @@ const config = {
     format: "es",
     plugins: [terser()],
   },
-  plugins: [typescript(), nodeResolve(), addFileIconSettings(ENTRY_FILE_PATH!)],
+  plugins: [typescript(), nodeResolve(), commonjs(), addFileIconSettings(ENTRY_FILE_PATH!)],
   watch: {
     include: "src/**",
   },
