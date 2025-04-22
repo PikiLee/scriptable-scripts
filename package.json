@@ -1,0 +1,25 @@
+{
+  "name": "Dropbox",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "b": "source ./build.sh; build",
+    "bw": "source ./build.sh; build_and_watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@9.14.4+sha512.c8180b3fbe4e4bca02c94234717896b5529740a6cbadf19fa78254270403ea2f27d4e1d46a08a0f56c89b63dc8ebfd3ee53326da720273794e6200fcf0d184ab",
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "@types/node": "^22.14.1",
+    "@types/scriptable-ios": "^1.7.7",
+    "rollup": "^4.40.0",
+    "scriptable-utils": "^2.3.2",
+    "tslib": "^2.8.1",
+    "typescript": "^5.8.3"
+  }
+}
