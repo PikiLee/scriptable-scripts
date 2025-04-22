@@ -42,6 +42,13 @@ export function createWidget(schedule: {
     title.textColor = Color.white();
     title.centerAlignText();
     widget.addSpacer(8);
+
+    // Updated Time
+    const updateTime = widget.addText(`Updated: ${dayjs().format('DD HH:mm')}`);
+    updateTime.font = Font.systemFont(12);
+    updateTime.textColor = Color.gray();
+    updateTime.centerAlignText();
+    widget.addSpacer(4);
     
     for (let [scheduleDay, games] of Object.entries(schedule).slice(0, 3)) {
         addGamesSection(widget, games, scheduleDay);
