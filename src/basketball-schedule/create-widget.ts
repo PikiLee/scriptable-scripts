@@ -1,34 +1,6 @@
 import { FetchScheduleResult } from "./fetch-schedule";
-import { IGame } from "./types";
 import dayjs from "dayjs";
-
-function addGamesSection(widget: ListWidget, games: IGame[], date: string) {
-    const sectionTitle = widget.addText(date);
-    sectionTitle.font = Font.boldSystemFont(14);
-    sectionTitle.textColor = Color.yellow();
-    widget.addSpacer(4);
-    
-    if (games.length > 0) {
-      games.forEach(game => {
-        const gameDate = dayjs(game.date);
-        const gameTime = gameDate.format('HH:mm');
-        const gameText = widget.addText(`${gameTime} - ${game.name}`);
-        gameText.font = Font.systemFont(12);
-        // Check if it's a Lakers game
-        if (game.name.includes('Lakers')) {
-          gameText.textColor = new Color('#FDB927'); // Lakers Gold color
-        } else {
-          gameText.textColor = Color.white();
-        }
-      });
-    } else {
-      const noGames = widget.addText('No games scheduled');
-      noGames.font = Font.systemFont(12);
-      noGames.textColor = Color.gray();
-    }
-    
-    widget.addSpacer(8);
-  }
+import { addGamesSection, addTeamGamesSection } from "./widget-sections";
 
 // Function to create the widget
 export function createWidget(fetchScheduleResult: FetchScheduleResult) {
@@ -48,6 +20,8 @@ export function createWidget(fetchScheduleResult: FetchScheduleResult) {
     widget.addSpacer(12);
 
 
+    const gamesSectionStack = widget.addStack();
+
     if (fetchScheduleResult.isErr()) {
         const error = fetchScheduleResult.error;
         let errorText;
@@ -60,9 +34,8 @@ export function createWidget(fetchScheduleResult: FetchScheduleResult) {
         errorText.font = Font.systemFont(12);
         errorText.textColor = Color.red();
     } else {
-        for (const [scheduleDay, games] of Object.entries(fetchScheduleResult.value).slice(0, 3)) {
-            addGamesSection(widget, games, scheduleDay);
-        }
+      addGamesSection(gamesSectionStack, fetchScheduleResult.value);
+      addTeamGamesSection(gamesSectionStack, fetchScheduleResult.value, 'Lakers');
     }
 
   
