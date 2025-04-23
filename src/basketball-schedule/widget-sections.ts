@@ -39,7 +39,7 @@ function addGamesItem(parent: WidgetStack, games: IGame[], date: string) {
 export function addTeamGamesSection(parent: WidgetStack, schedule: ISchedule, teamName: string) {
   const stack = parent.addStack();
   stack.layoutVertically();
-  stack.setPadding(0, 24, 0, 0);
+  stack.setPadding(0, 52, 0, 0);
 
   const sectionTitle = stack.addText(teamName);
   sectionTitle.font = Font.boldSystemFont(14);
