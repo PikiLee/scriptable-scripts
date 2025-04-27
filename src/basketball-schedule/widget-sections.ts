@@ -1,4 +1,4 @@
-import { IGame, ISchedule } from "./types";
+import { ICompetitor, IGame, ISchedule } from "./types";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import isToday from "dayjs/plugin/isToday";
@@ -12,6 +12,10 @@ export function addGamesSection(parent: WidgetStack, schedule: ISchedule) {
     for (const [scheduleDay, games] of Object.entries(schedule).slice(0, 3)) {
         addGamesItem(stack, games, scheduleDay);
     }
+}
+
+function formatGameText(competitor: ICompetitor, wins: number | undefined): string | undefined {
+  return `${competitor.team.abbreviation}${wins !== undefined ? `(${wins})` : ''}`
 }
 
 function addGamesItem(parent: WidgetStack, games: IGame[], date: string) {
@@ -31,7 +35,12 @@ function addGamesItem(parent: WidgetStack, games: IGame[], date: string) {
       games.forEach(game => {
         const gameDate = dayjs(game.date);
         const gameTime = gameDate.format('HH:mm');
-        const gameText = parent.addText(`${gameTime} - ${game.shortName}`);
+        const homeTeam = game.competitions[0]?.competitors.find(competitor => competitor.homeAway === 'home');
+        const homeTeamWins = game.competitions[0]?.series?.competitors.find(competitor => competitor.id === homeTeam?.id)?.wins;
+        const awayTeam = game.competitions[0]?.competitors.find(competitor => competitor.homeAway === 'away');
+        const awayTeamWins = game.competitions[0]?.series?.competitors.find(competitor => competitor.id === awayTeam?.id)?.wins;
+        if (!homeTeam || !awayTeam) return;
+        const gameText = parent.addText(`${gameTime} - ${formatGameText(awayTeam, awayTeamWins)} @ ${formatGameText(homeTeam, homeTeamWins)}`);
         gameText.font = Font.systemFont(12);
         gameText.textColor = Color.white();
       });
