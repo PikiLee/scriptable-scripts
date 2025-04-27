@@ -4,6 +4,11 @@ export const gameSchema = z.object({
   date: z.string(),
   name: z.string(),
   shortName: z.string(),
+  status: z.object({
+    type: z.object({
+      shortDetail: z.string(),
+    })
+  })
 });
 export type IGame = z.infer<typeof gameSchema>;
 
