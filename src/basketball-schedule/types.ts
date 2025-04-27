@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const competitorSchema = z.object({
   id: z.string(),
   homeAway: z.union([z.literal('home'), z.literal('away')]),
+  score: z.string(),
   team: z.object({
     abbreviation: z.string(),
   }),
