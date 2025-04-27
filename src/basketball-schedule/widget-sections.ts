@@ -15,7 +15,7 @@ export function addGamesSection(parent: WidgetStack, schedule: ISchedule) {
 }
 
 function formatGameText(competitor: ICompetitor, score: string | undefined, wins: number | undefined): string | undefined {
-  return `${competitor.team.abbreviation}${score !== undefined && score !== '0' ? ` ${score} ` : ''}${wins !== undefined ? `(${wins})` : ''}`
+  return `${competitor.team.abbreviation}${score !== undefined && score !== '0' ? ` ${score}` : ''}${wins !== undefined ? `(${wins})` : ''}`
 }
 
 function addGamesItem(parent: WidgetStack, games: IGame[], date: string) {
@@ -40,7 +40,7 @@ function addGamesItem(parent: WidgetStack, games: IGame[], date: string) {
         const awayTeam = game.competitions[0]?.competitors.find(competitor => competitor.homeAway === 'away');
         const awayTeamWins = game.competitions[0]?.series?.competitors.find(competitor => competitor.id === awayTeam?.id)?.wins;
         if (!homeTeam || !awayTeam) return;
-        const gameText = parent.addText(`${gameTime} - ${formatGameText(awayTeam, awayTeam.score, awayTeamWins)} @ ${formatGameText(homeTeam, homeTeam.score, homeTeamWins)}`);
+        const gameText = parent.addText(`${gameTime} ${formatGameText(awayTeam, awayTeam.score, awayTeamWins)} @ ${formatGameText(homeTeam, homeTeam.score, homeTeamWins)}`);
         gameText.font = Font.systemFont(12);
         if (game.status.type.completed) {
             gameText.textColor = Color.green();
