@@ -1,7 +1,9 @@
 import { IGame, ISchedule } from "./types";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
+import isToday from "dayjs/plugin/isToday";
 dayjs.extend(isoWeek)
+dayjs.extend(isToday)
 
 export function addGamesSection(parent: WidgetStack, schedule: ISchedule) {
     const stack = parent.addStack();
@@ -16,8 +18,14 @@ function addGamesItem(parent: WidgetStack, games: IGame[], date: string) {
     const weekday = dayjs(date).isoWeekday();
     const sectionTitle = parent.addText(`${date} (${weekday})`);
     sectionTitle.font = Font.boldSystemFont(14);
-    sectionTitle.textColor = Color.yellow();
     parent.addSpacer(4);
+
+    const isToday = dayjs(date).isToday();
+    if (isToday) {
+        sectionTitle.textColor = Color.green();
+    } else {
+        sectionTitle.textColor = Color.yellow();
+    }
     
     if (games.length > 0) {
       games.forEach(game => {
