@@ -42,7 +42,11 @@ function addGamesItem(parent: WidgetStack, games: IGame[], date: string) {
         if (!homeTeam || !awayTeam) return;
         const gameText = parent.addText(`${gameTime} - ${formatGameText(awayTeam, awayTeamWins)} @ ${formatGameText(homeTeam, homeTeamWins)}`);
         gameText.font = Font.systemFont(12);
-        gameText.textColor = Color.white();
+        if (game.status.type.completed) {
+            gameText.textColor = Color.green();
+        } else {
+            gameText.textColor = Color.white();
+        }
       });
     } else {
       const noGames = parent.addText('No games scheduled');

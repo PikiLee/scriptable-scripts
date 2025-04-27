@@ -25,6 +25,7 @@ export const gameSchema = z.object({
   status: z.object({
     type: z.object({
       shortDetail: z.string(),
+      completed: z.boolean(),
     })
   }),
 });
