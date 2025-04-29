@@ -7,8 +7,6 @@ import { err, ok, Result } from "neverthrow";
 import { ZodError } from "zod";
 import { TaggedError } from "@nakanoaas/tagged-error";
 
-const BASE_URL = 'http://cdn.espn.com/core';
-
 // Helper function to format numbers (e.g., pad with leading zero)
 function formatNumber(num: number): string {
   return num.toString().padStart(2, '0');
@@ -20,7 +18,7 @@ export function constructURL(rawDate: Date): string {
     const year = date.year();
     const month = formatNumber(date.month() + 1);
     const day = formatNumber(date.date());
-    const url = `${BASE_URL}/nba/schedule?dates=${year}${month}${day}&xhr=1&render=false&device=desktop&userab=18`;
+    const url = `http://cdn.espn.com/core/nba/schedule?dates=${year}${month}${day}&xhr=1&render=false&device=desktop&userab=18`;
     return url;
   }
 
