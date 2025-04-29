@@ -33,8 +33,9 @@ function addGamesItem(parent: WidgetStack, games: IGame[], date: string) {
     
     if (games.length > 0) {
       games.forEach(game => {
+        const isTBD = game.status.type.shortDetail.includes('TBD');
         const gameDate = dayjs(game.date);
-        const gameTime = gameDate.format('HH:mm');
+        const gameTime = isTBD ? 'TBD' : gameDate.format('HH:mm');
         const homeTeam = game.competitions[0]?.competitors.find(competitor => competitor.homeAway === 'home');
         const homeTeamWins = game.competitions[0]?.series?.competitors.find(competitor => competitor.id === homeTeam?.id)?.wins;
         const awayTeam = game.competitions[0]?.competitors.find(competitor => competitor.homeAway === 'away');

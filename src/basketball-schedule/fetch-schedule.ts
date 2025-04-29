@@ -39,8 +39,6 @@ export async function fetchSchedule(date: Date): Promise<FetchScheduleResult> {
       } = {}
       
       for (const game of games) {
-        if (game.status.type.shortDetail.includes('TBD')) continue;
-
         const gameDate = dayjs(game.date);
         if (gameDate.isBefore(date, 'day')) continue;
 
