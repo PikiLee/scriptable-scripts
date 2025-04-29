@@ -32,8 +32,7 @@ export async function fetchSchedule(date: Date): Promise<FetchScheduleResult> {
       if (!data.success) {
         return err(new ValidationError(data.error));
       }
-
-      const games = Object.values(data.data.content.schedule).flatMap((daySchedule) => daySchedule.games)
+      const games = Object.values(data.data.content.schedule).flatMap((daySchedule) => 'games' in daySchedule ? daySchedule.games : [])
 
       const schedule: {
         [key: string]: IGame[]

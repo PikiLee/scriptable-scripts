@@ -40,7 +40,7 @@ export type IDaySchedule = z.infer<typeof dayScheduleSchema>;
 // Root Schema
 export const scheduleResponseSchema = z.object({
   content: z.object({
-    schedule: z.record(z.string(), dayScheduleSchema),
+    schedule: z.record(z.string(), z.union([dayScheduleSchema, z.object({})])),
   }),
 });
 export type IScheduleResponse = z.infer<typeof scheduleResponseSchema>; 
