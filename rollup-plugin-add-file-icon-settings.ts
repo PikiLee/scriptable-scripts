@@ -31,7 +31,7 @@ const fallbackIconSettings: ScriptSettings = {
 };
 
 const getBannerForFilePath = (filePath: string) => {
-  const matchForTsFiles = filePath.match(/.*\/([a-z0-9.]+)\.ts/i);
+  const matchForTsFiles = filePath.match(/.*\/([a-z0-9\-.]+)\.ts/i);
   if (!matchForTsFiles?.[1]) return null;
   const filename = matchForTsFiles[1];
 

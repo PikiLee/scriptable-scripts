@@ -12,9 +12,9 @@ const config = {
   output: {
     dir: "..",
     format: "es",
-    plugins: [terser()],
+    plugins: [terser(), addFileIconSettings(ENTRY_FILE_PATH!)],
   },
-  plugins: [typescript(), nodeResolve(), commonjs(), addFileIconSettings(ENTRY_FILE_PATH!)],
+  plugins: [typescript(), nodeResolve(), commonjs()],
   watch: {
     include: "src/**",
   },
