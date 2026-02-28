@@ -21,7 +21,7 @@ export const gameSchema = z.object({
         id: z.string(),
         wins: z.number(),
       })),
-    })
+    }).optional()
   })),
   status: z.object({
     type: z.object({
