@@ -9,7 +9,11 @@ export function addGamesSection(parent: WidgetStack, schedule: ISchedule) {
     const stack = parent.addStack();
     stack.layoutVertically();
 
-    for (const [scheduleDay, games] of Object.entries(schedule).slice(0, 3)) {
+    const entries = Object.entries(schedule);
+    const threeDayTotal = entries.slice(0, 3).reduce((sum, [, g]) => sum + g.length, 0);
+    const daysToShow = threeDayTotal > 15 ? 2 : 3;
+
+    for (const [scheduleDay, games] of entries.slice(0, daysToShow)) {
         addGamesItem(stack, games, scheduleDay);
     }
 }
