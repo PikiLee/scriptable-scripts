@@ -47,13 +47,16 @@ const getBannerForFilePath = (filePath: string) => {
   return getScriptableSettingsCommentLines(fallbackIconSettings);
 };
 
-//
+const getBuildTimeWatermark = () => `// Built at ${new Date().toISOString()}`;
 
 const addFileIconSettings = (filePath: string): Plugin => ({
   name: "rollup-plugin-scriptable-icon-settings",
   renderChunk: code => {
     const commentLines = getBannerForFilePath(filePath);
-    return commentLines ? [commentLines, code].join("\n") : code;
+    const watermark = getBuildTimeWatermark();
+    return commentLines
+      ? [commentLines, watermark, code].join("\n")
+      : [watermark, code].join("\n");
   },
 });
 
