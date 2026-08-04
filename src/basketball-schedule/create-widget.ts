@@ -36,6 +36,7 @@ export function createWidget(fetchScheduleResult: FetchScheduleResult) {
     } else {
       addGamesSection(gamesSectionStack, fetchScheduleResult.value);
       addTeamGamesSection(gamesSectionStack, fetchScheduleResult.value, 'Lakers');
+      addTeamGamesSection(gamesSectionStack, fetchScheduleResult.value, '76ers');
     }
 
   

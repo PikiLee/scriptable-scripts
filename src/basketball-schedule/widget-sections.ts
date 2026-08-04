@@ -18,6 +18,23 @@ export function addGamesSection(parent: WidgetStack, schedule: ISchedule) {
     }
 }
 
+function addLimitedGamesSection(parent: WidgetStack, schedule: ISchedule, maxGames: number) {
+    const stack = parent.addStack();
+    stack.layoutVertically();
+
+    let remainingGames = maxGames;
+
+    for (const [scheduleDay, games] of Object.entries(schedule)) {
+        if (remainingGames <= 0) break;
+
+        const gamesToShow = games.slice(0, remainingGames);
+        if (gamesToShow.length === 0) continue;
+
+        addGamesItem(stack, gamesToShow, scheduleDay);
+        remainingGames -= gamesToShow.length;
+    }
+}
+
 function formatGameText(competitor: ICompetitor, score: string | undefined, wins: number | undefined): string | undefined {
   return `${competitor.team.abbreviation}${score !== undefined && score !== '0' ? ` ${score}` : ''}${wins !== undefined ? `(${wins})` : ''}`
 }
@@ -80,5 +97,5 @@ export function addTeamGamesSection(parent: WidgetStack, schedule: ISchedule, te
     }
   }
 
-  addGamesSection(stack, teamSchedule);
+  addLimitedGamesSection(stack, teamSchedule, 3);
 }
