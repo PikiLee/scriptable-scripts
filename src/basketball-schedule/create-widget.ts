@@ -5,7 +5,7 @@ import { addGamesSection, addScheduleError, addTeamGamesSection, TeamSection, th
 // Function to create the widget
 export function createWidget(fetchScheduleResult: FetchScheduleResult, teams: TeamSection[]) {
     const widget = new ListWidget();
-    widget.setPadding(12, 12, 12, 12);
+    widget.setPadding(10, 10, 10, 10);
 
     const gradient = new LinearGradient();
     gradient.colors = [new Color('#1C1F26'), new Color('#0B0C10')];
@@ -26,7 +26,7 @@ export function createWidget(fetchScheduleResult: FetchScheduleResult, teams: Te
     header.addSpacer();
 
     const updateTime = header.addText(`Updated ${dayjs().format('MM-DD HH:mm')}`);
-    updateTime.font = Font.mediumRoundedSystemFont(10);
+    updateTime.font = Font.mediumRoundedSystemFont(11);
     updateTime.textColor = theme.secondary;
     widget.addSpacer(8);
 

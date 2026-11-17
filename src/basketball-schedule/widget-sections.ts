@@ -7,7 +7,7 @@ dayjs.extend(isToday)
 export const theme = {
   card: new Color('#FFFFFF', 0.07),
   primary: Color.white(),
-  secondary: new Color('#8E8E93'),
+  secondary: new Color('#A1A1AA'),
   today: new Color('#FF9F0A'),
   win: new Color('#30D158'),
   loss: new Color('#FF453A'),
@@ -20,9 +20,24 @@ export type TeamSection = {
   result: FetchScheduleResult;
 };
 
-const MAX_TEAM_GAMES = 6;
+// Team card height budget (pt), measured from a rendered large widget
+const TEAM_CARD_OVERHEAD = 86; // widget padding, header, card padding, team title
+const TEAM_GAME_HEIGHT = 36;   // date line + matchup line + spacing
+const TEAM_RESULT_HEIGHT = 16; // extra line for a started game's score
+
+// Large widget height in points, by screen width (Apple's published widget sizes)
+function largeWidgetHeight(): number {
+  const { width, height } = Device.screenSize();
+  const w = Math.min(width, height);
+  if (w >= 428) return 382;
+  if (w >= 414) return 376;
+  if (w >= 390) return 354;
+  return 335;
+}
+// Fixed so the all-games card gets the remaining width
+const TEAM_CARD_WIDTH = 92;
 // Rough line budget for the all-games card, so it never overflows the widget
-const MAX_LINES = 20;
+const MAX_LINES = 17;
 const DAY_HEADER_LINES = 1.5;
 
 function addText(stack: WidgetStack, text: string, font: Font, color: Color): WidgetText {
@@ -55,7 +70,7 @@ function addErrorText(stack: WidgetStack, result: FetchScheduleResult) {
   if (result.isOk()) return;
   const error = result.error;
   if (error.tag === "VALIDATION_ERROR") console.log(error.zodError.message);
-  addText(stack, error.tag === "VALIDATION_ERROR" ? 'Invalid data' : 'Fetch failed', Font.mediumRoundedSystemFont(11), theme.loss);
+  addText(stack, error.tag === "VALIDATION_ERROR" ? 'Invalid data' : 'Fetch failed', Font.mediumRoundedSystemFont(13), theme.loss);
 }
 
 function getCompetitors(game: IGame) {
@@ -82,7 +97,7 @@ function addDayHeader(stack: WidgetStack, date: string) {
   const d = dayjs(date);
   const isToday = d.isToday();
   const label = isToday ? `TODAY · ${d.format('MM-DD')}` : d.format('ddd MM-DD').toUpperCase();
-  addText(stack, label, Font.boldRoundedSystemFont(10), isToday ? theme.today : theme.secondary);
+  addText(stack, label, Font.boldRoundedSystemFont(12), isToday ? theme.today : theme.secondary);
   stack.addSpacer(2);
 }
 
@@ -92,10 +107,10 @@ function addGameRow(stack: WidgetStack, game: IGame) {
   if (!home || !away) return;
 
   const row = addRow(stack);
-  const font = Font.mediumRoundedSystemFont(11);
+  const font = Font.mediumRoundedSystemFont(13);
 
   if (!hasStarted(game, home, away)) {
-    addText(row, formatTime(game), Font.mediumMonospacedSystemFont(10), theme.secondary);
+    addText(row, formatTime(game), Font.mediumMonospacedSystemFont(12), theme.secondary);
     addText(row, `${teamLabel(away, awayWins)} @ ${teamLabel(home, homeWins)}`, font, theme.primary);
     return;
   }
@@ -103,9 +118,9 @@ function addGameRow(stack: WidgetStack, game: IGame) {
   const completed = game.status.type.completed;
   const awayWon = Number(away.score) > Number(home.score);
   const colorFor = (won: boolean) => !completed || won ? theme.primary : theme.secondary;
-  const fontFor = (won: boolean) => completed && won ? Font.boldRoundedSystemFont(11) : font;
+  const fontFor = (won: boolean) => completed && won ? Font.boldRoundedSystemFont(13) : font;
 
-  if (!completed) addText(row, '●', Font.systemFont(7), theme.loss);
+  if (!completed) addText(row, '●', Font.systemFont(8), theme.loss);
   addText(row, `${teamLabel(away, awayWins)} ${away.score}`, fontFor(awayWon), colorFor(awayWon));
   addText(row, '@', font, theme.secondary);
   addText(row, `${teamLabel(home, homeWins)} ${home.score}`, fontFor(!awayWon), colorFor(!awayWon));
@@ -129,7 +144,7 @@ export function addGamesSection(parent: WidgetStack, schedule: ISchedule) {
     list.layoutVertically();
     list.spacing = 2;
     if (games.length === 0) {
-      addText(list, 'No games', Font.mediumRoundedSystemFont(11), theme.secondary);
+      addText(list, 'No games', Font.mediumRoundedSystemFont(13), theme.secondary);
     }
     games.forEach(game => addGameRow(list, game));
   }
@@ -140,7 +155,7 @@ export function addGamesSection(parent: WidgetStack, schedule: ISchedule) {
   card.addSpacer();
 }
 
-// Two lines per game: "WED 11-18 · 12:00" / "vs CHA", or "MON 11-17" / "@ BKN  W 135-123"
+// "11-18 · 12:00" / "vs CHA"; a started game drops the time and adds a score line: "TODAY" / "@ BKN" / "W 135-123"
 function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string) {
   const { home, away } = getCompetitors(game);
   if (!home || !away) return;
@@ -157,39 +172,50 @@ function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string) {
   item.layoutVertically();
 
   const meta = addRow(item, 3);
-  const metaFont = Font.semiboldRoundedSystemFont(9);
-  addText(meta, isToday ? 'TODAY' : d.format('ddd MM-DD').toUpperCase(), metaFont, isToday ? theme.today : theme.secondary);
+  const metaFont = Font.semiboldRoundedSystemFont(11);
+  addText(meta, isToday ? 'TODAY' : d.format('MM-DD'), metaFont, isToday ? theme.today : theme.secondary);
   if (!started) addText(meta, `· ${formatTime(game)}`, metaFont, theme.secondary);
 
-  const main = addRow(item);
-  addText(main, `${isHome ? 'vs' : '@'} ${them.team.abbreviation}`, Font.semiboldRoundedSystemFont(12), theme.primary);
+  addText(item, `${isHome ? 'vs' : '@'} ${them.team.abbreviation}`, Font.semiboldRoundedSystemFont(14), theme.primary);
+
   if (started) {
     const won = Number(us.score) > Number(them.score);
-    const result = completed ? `${won ? 'W' : 'L'} ${us.score}-${them.score}` : `${us.score}-${them.score}`;
-    addText(main, result, Font.semiboldRoundedSystemFont(10), !completed ? theme.today : won ? theme.win : theme.loss);
+    const result = completed ? `${won ? 'W' : 'L'} ${us.score}-${them.score}` : `LIVE ${us.score}-${them.score}`;
+    addText(item, result, Font.boldRoundedSystemFont(13), !completed ? theme.today : won ? theme.win : theme.loss);
   }
 }
 
 export function addTeamGamesSection(parent: WidgetStack, team: TeamSection) {
   const card = addCard(parent);
+  card.size = new Size(TEAM_CARD_WIDTH, 0);
 
   const header = addRow(card, 5);
   const bar = header.addStack();
   bar.size = new Size(3, 12);
   bar.cornerRadius = 1.5;
   bar.backgroundColor = new Color(team.color);
-  addText(header, team.name, Font.boldRoundedSystemFont(13), theme.primary);
+  addText(header, team.name, Font.boldRoundedSystemFont(14), theme.primary);
   card.addSpacer(6);
 
   if (team.result.isErr()) {
     addErrorText(card, team.result);
   } else {
-    const games = Object.values(team.result.value).flat().slice(0, MAX_TEAM_GAMES);
+    // Show as many games as fit in the card's height
+    const budget = largeWidgetHeight() - TEAM_CARD_OVERHEAD;
+    const games: IGame[] = [];
+    let used = 0;
+    for (const game of Object.values(team.result.value).flat()) {
+      const { home, away } = getCompetitors(game);
+      const cost = TEAM_GAME_HEIGHT + (home && away && hasStarted(game, home, away) ? TEAM_RESULT_HEIGHT : 0);
+      if (used + cost > budget) break;
+      used += cost;
+      games.push(game);
+    }
     const list = card.addStack();
     list.layoutVertically();
-    list.spacing = 6;
+    list.spacing = 7;
     if (games.length === 0) {
-      addText(list, 'No games', Font.mediumRoundedSystemFont(11), theme.secondary);
+      addText(list, 'No games', Font.mediumRoundedSystemFont(13), theme.secondary);
     }
     games.forEach(game => addTeamGameRow(list, game, team.abbr));
   }
