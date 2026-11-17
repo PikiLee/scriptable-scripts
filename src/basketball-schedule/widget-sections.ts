@@ -42,7 +42,7 @@ function formatGameText(competitor: ICompetitor, score: string | undefined, wins
 
 function addGamesItem(parent: WidgetStack, games: IGame[], date: string) {
     const weekday = dayjs(date).isoWeekday();
-    const sectionTitle = parent.addText(`${date} (${weekday})`);
+    const sectionTitle = parent.addText(`${dayjs(date).format('MM-DD')} (${weekday})`);
     sectionTitle.font = Font.boldSystemFont(14);
     parent.addSpacer(4);
 

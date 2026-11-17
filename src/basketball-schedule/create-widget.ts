@@ -7,14 +7,17 @@ export function createWidget(fetchScheduleResult: FetchScheduleResult, teamSched
     const widget = new ListWidget();
     widget.backgroundColor = new Color('#1E1E1E');
     
-    // Title
-    const title = widget.addText('🏀 NBA Games');
+    // Title and updated time on one line
+    const headerStack = widget.addStack();
+    headerStack.layoutHorizontally();
+    headerStack.centerAlignContent();
+
+    const title = headerStack.addText('🏀 NBA Games');
     title.font = Font.boldSystemFont(16);
     title.textColor = Color.white();
-    widget.addSpacer(4);
+    headerStack.addSpacer(8);
 
-    // Updated Time
-    const updateTime = widget.addText(`Updated at ${dayjs().format('MM-DD HH:mm')}`);
+    const updateTime = headerStack.addText(`Updated at ${dayjs().format('MM-DD HH:mm')}`);
     updateTime.font = Font.systemFont(12);
     updateTime.textColor = Color.gray();
     widget.addSpacer(12);
