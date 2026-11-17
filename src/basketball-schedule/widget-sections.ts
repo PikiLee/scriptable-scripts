@@ -20,32 +20,21 @@ export type TeamSection = {
   result: FetchScheduleResult;
 };
 
-// Team card height budget (pt), measured from a rendered large widget
-const TEAM_CARD_OVERHEAD = 86; // widget padding, header, card padding, team title
-const TEAM_GAME_HEIGHT = 36;   // date line + matchup line + spacing
-const TEAM_RESULT_HEIGHT = 16; // extra line for a started game's score
-
-// Large widget height in points, by screen width (Apple's published widget sizes)
-function largeWidgetHeight(): number {
-  const { width, height } = Device.screenSize();
-  const w = Math.min(width, height);
-  if (w >= 428) return 382;
-  if (w >= 414) return 376;
-  if (w >= 390) return 354;
-  return 335;
-}
+// Fits a large widget on iPhone Pro Max, with room for a score line or a month label
+const TEAM_GAME_COUNT = 6;
 // Fixed so the all-games card gets the remaining width
 const TEAM_CARD_WIDTH = 92;
 // Rough line budget for the all-games card, so it never overflows the widget
 const MAX_LINES = 17;
 const DAY_HEADER_LINES = 1.5;
 
-function addText(stack: WidgetStack, text: string, font: Font, color: Color): WidgetText {
+// minScale < 1 lets text shrink to fit; team cards pass 1 so overflow clips the bottom instead of shrinking text
+function addText(stack: WidgetStack, text: string, font: Font, color: Color, minScale = 0.7): WidgetText {
   const t = stack.addText(text);
   t.font = font;
   t.textColor = color;
   t.lineLimit = 1;
-  t.minimumScaleFactor = 0.7;
+  t.minimumScaleFactor = minScale;
   return t;
 }
 
@@ -155,7 +144,7 @@ export function addGamesSection(parent: WidgetStack, schedule: ISchedule) {
   card.addSpacer();
 }
 
-// "11-18 · 12:00" / "vs CHA"; a started game drops the time and adds a score line: "TODAY" / "@ BKN" / "W 135-123"
+// "18 · 12:00" / "vs CHA" (month is a separate label); a started game keeps its time and adds a score line
 function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string) {
   const { home, away } = getCompetitors(game);
   if (!home || !away) return;
@@ -172,16 +161,16 @@ function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string) {
   item.layoutVertically();
 
   const meta = addRow(item, 3);
-  const metaFont = Font.semiboldRoundedSystemFont(11);
-  addText(meta, isToday ? 'TODAY' : d.format('MM-DD'), metaFont, isToday ? theme.today : theme.secondary);
-  if (!started) addText(meta, `· ${formatTime(game)}`, metaFont, theme.secondary);
+  const dateColor = isToday ? theme.today : theme.secondary;
+  addText(meta, d.format('D'), Font.boldRoundedSystemFont(13), dateColor, 1);
+  addText(meta, `· ${formatTime(game)}`, Font.semiboldRoundedSystemFont(13), dateColor, 1);
 
-  addText(item, `${isHome ? 'vs' : '@'} ${them.team.abbreviation}`, Font.semiboldRoundedSystemFont(14), theme.primary);
+  addText(item, `${isHome ? 'vs' : '@'} ${them.team.abbreviation}`, Font.semiboldRoundedSystemFont(14), theme.primary, 1);
 
   if (started) {
     const won = Number(us.score) > Number(them.score);
     const result = completed ? `${won ? 'W' : 'L'} ${us.score}-${them.score}` : `LIVE ${us.score}-${them.score}`;
-    addText(item, result, Font.boldRoundedSystemFont(13), !completed ? theme.today : won ? theme.win : theme.loss);
+    addText(item, result, Font.boldRoundedSystemFont(13), !completed ? theme.today : won ? theme.win : theme.loss, 1);
   }
 }
 
@@ -194,30 +183,29 @@ export function addTeamGamesSection(parent: WidgetStack, team: TeamSection) {
   bar.size = new Size(3, 12);
   bar.cornerRadius = 1.5;
   bar.backgroundColor = new Color(team.color);
-  addText(header, team.name, Font.boldRoundedSystemFont(14), theme.primary);
+  addText(header, team.name, Font.boldRoundedSystemFont(14), theme.primary, 1);
   card.addSpacer(6);
 
   if (team.result.isErr()) {
     addErrorText(card, team.result);
   } else {
-    // Show as many games as fit in the card's height
-    const budget = largeWidgetHeight() - TEAM_CARD_OVERHEAD;
-    const games: IGame[] = [];
-    let used = 0;
-    for (const game of Object.values(team.result.value).flat()) {
-      const { home, away } = getCompetitors(game);
-      const cost = TEAM_GAME_HEIGHT + (home && away && hasStarted(game, home, away) ? TEAM_RESULT_HEIGHT : 0);
-      if (used + cost > budget) break;
-      used += cost;
-      games.push(game);
-    }
+    const games = Object.values(team.result.value).flat().slice(0, TEAM_GAME_COUNT);
     const list = card.addStack();
     list.layoutVertically();
     list.spacing = 7;
+
+    let month: string | undefined;
+    for (const game of games) {
+      const gameMonth = dayjs(game.date).format('MMM').toUpperCase();
+      if (gameMonth !== month) {
+        addText(list, gameMonth, Font.boldRoundedSystemFont(11), theme.secondary, 1);
+      }
+      addTeamGameRow(list, game, team.abbr);
+      month = gameMonth;
+    }
     if (games.length === 0) {
       addText(list, 'No games', Font.mediumRoundedSystemFont(13), theme.secondary);
     }
-    games.forEach(game => addTeamGameRow(list, game, team.abbr));
   }
 
   card.addSpacer();
