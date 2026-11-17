@@ -1,51 +1,51 @@
 import { FetchScheduleResult } from "./fetch-schedule";
 import dayjs from "dayjs";
-import { addGamesSection, addTeamGamesSection } from "./widget-sections";
+import { addGamesSection, addScheduleError, addTeamGamesSection, TeamSection, theme } from "./widget-sections";
 
 // Function to create the widget
-export function createWidget(fetchScheduleResult: FetchScheduleResult, teamSchedules: { name: string, result: FetchScheduleResult }[]) {
+export function createWidget(fetchScheduleResult: FetchScheduleResult, teams: TeamSection[]) {
     const widget = new ListWidget();
-    widget.backgroundColor = new Color('#1E1E1E');
-    
-    // Title and updated time on one line
-    const headerStack = widget.addStack();
-    headerStack.layoutHorizontally();
-    headerStack.centerAlignContent();
+    widget.setPadding(12, 12, 12, 12);
 
-    const title = headerStack.addText('🏀 NBA Games');
-    title.font = Font.boldSystemFont(16);
-    title.textColor = Color.white();
-    headerStack.addSpacer(8);
+    const gradient = new LinearGradient();
+    gradient.colors = [new Color('#1C1F26'), new Color('#0B0C10')];
+    gradient.locations = [0, 1];
+    gradient.startPoint = new Point(0, 0);
+    gradient.endPoint = new Point(1, 1);
+    widget.backgroundGradient = gradient;
 
-    const updateTime = headerStack.addText(`Updated at ${dayjs().format('MM-DD HH:mm')}`);
-    updateTime.font = Font.systemFont(12);
-    updateTime.textColor = Color.gray();
-    widget.addSpacer(12);
+    // Header: title on the left, updated time on the right
+    const header = widget.addStack();
+    header.layoutHorizontally();
+    header.centerAlignContent();
+    header.setPadding(0, 2, 0, 2);
 
+    const title = header.addText('🏀 NBA');
+    title.font = Font.heavyRoundedSystemFont(17);
+    title.textColor = theme.primary;
+    header.addSpacer();
 
-    const gamesSectionStack = widget.addStack();
+    const updateTime = header.addText(`Updated ${dayjs().format('MM-DD HH:mm')}`);
+    updateTime.font = Font.mediumRoundedSystemFont(10);
+    updateTime.textColor = theme.secondary;
+    widget.addSpacer(8);
+
+    const columns = widget.addStack();
+    columns.layoutHorizontally();
+    columns.topAlignContent();
+    columns.spacing = 6;
 
     if (fetchScheduleResult.isErr()) {
-        const error = fetchScheduleResult.error;
-        let errorText;
-        if (error.tag === "VALIDATION_ERROR") {
-            errorText = widget.addText('Invalid schedule data');
-            console.log(error.zodError.message);
-        } else {
-            errorText = widget.addText('Error fetching schedule');
-        }
-        errorText.font = Font.systemFont(12);
-        errorText.textColor = Color.red();
+      addScheduleError(columns, fetchScheduleResult);
     } else {
-      addGamesSection(gamesSectionStack, fetchScheduleResult.value);
-      for (const { name, result } of teamSchedules) {
-        addTeamGamesSection(gamesSectionStack, result, name);
-      }
+      addGamesSection(columns, fetchScheduleResult.value);
+    }
+    for (const team of teams) {
+      addTeamGamesSection(columns, team);
     }
 
-  
     // set refresh interval to 6 hours
     widget.refreshAfterDate = new Date(Date.now() + 6 * 60 * 60 * 1000)
-    
+
     return widget;
   }

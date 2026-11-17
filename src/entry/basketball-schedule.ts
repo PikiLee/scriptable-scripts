@@ -2,8 +2,8 @@ import { createWidget } from "basketball-schedule/create-widget";
 import { fetchSchedule, fetchTeamSchedule } from "basketball-schedule/fetch-schedule";
 
 const TEAMS = [
-  { name: 'Lakers', slug: 'lal' },
-  { name: '76ers', slug: 'phi' },
+  { name: 'Lakers', slug: 'lal', abbr: 'LAL', color: '#FDB927' },
+  { name: '76ers', slug: 'phi', abbr: 'PHI', color: '#3D8BFD' },
 ];
 
 async function run() {
@@ -16,7 +16,7 @@ async function run() {
   
   const widget = createWidget(
     fetchScheduleResult!,
-    TEAMS.map((team, i) => ({ name: team.name, result: teamResults[i]! })),
+    TEAMS.map((team, i) => ({ ...team, result: teamResults[i]! })),
   );
 
   Script.setWidget(widget);
