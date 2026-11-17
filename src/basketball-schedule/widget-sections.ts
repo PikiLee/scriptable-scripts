@@ -1,4 +1,5 @@
 import { ICompetitor, IGame, ISchedule } from "./types";
+import { FetchScheduleResult } from "./fetch-schedule";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import isToday from "dayjs/plugin/isToday";
@@ -79,7 +80,7 @@ function addGamesItem(parent: WidgetStack, games: IGame[], date: string) {
     parent.addSpacer(8);
   }
 
-export function addTeamGamesSection(parent: WidgetStack, schedule: ISchedule, teamName: string) {
+export function addTeamGamesSection(parent: WidgetStack, teamScheduleResult: FetchScheduleResult, teamName: string) {
   const stack = parent.addStack();
   stack.layoutVertically();
   stack.setPadding(0, 12, 0, 0);
@@ -89,13 +90,14 @@ export function addTeamGamesSection(parent: WidgetStack, schedule: ISchedule, te
   sectionTitle.textColor = Color.white();
   stack.addSpacer(4);
 
-  const teamSchedule: ISchedule = {};
-  for (const [scheduleDay, games] of Object.entries(schedule)) {
-    const teamGames = games.filter(game => game.name.includes(teamName));
-    if (teamGames.length > 0) {
-      teamSchedule[scheduleDay] = teamGames;
-    }
+  if (teamScheduleResult.isErr()) {
+    const error = teamScheduleResult.error;
+    if (error.tag === "VALIDATION_ERROR") console.log(error.zodError.message);
+    const errorText = stack.addText(error.tag === "VALIDATION_ERROR" ? 'Invalid schedule data' : 'Error fetching schedule');
+    errorText.font = Font.systemFont(12);
+    errorText.textColor = Color.red();
+    return;
   }
 
-  addLimitedGamesSection(stack, teamSchedule, 6);
+  addLimitedGamesSection(stack, teamScheduleResult.value, 6);
 }

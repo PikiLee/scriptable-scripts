@@ -45,6 +45,28 @@ export const scheduleResponseSchema = z.object({
 });
 export type IScheduleResponse = z.infer<typeof scheduleResponseSchema>; 
 
+// Team schedule endpoint (site.api.espn.com/.../teams/{team}/schedule) covers the whole season
+export const teamScheduleResponseSchema = z.object({
+  events: z.array(z.object({
+    date: z.string(),
+    name: z.string(),
+    shortName: z.string(),
+    competitions: z.array(z.object({
+      competitors: z.array(z.object({
+        id: z.string(),
+        homeAway: z.union([z.literal('home'), z.literal('away')]),
+        score: z.object({ displayValue: z.string() }).optional(),
+        team: z.object({
+          abbreviation: z.string(),
+        }),
+      })),
+      series: gameSchema.shape.competitions.element.shape.series.catch(undefined),
+      status: gameSchema.shape.status,
+    })),
+  })),
+});
+export type ITeamScheduleResponse = z.infer<typeof teamScheduleResponseSchema>;
+
 export type ISchedule = {
   [key: string]: IGame[]
 }

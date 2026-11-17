@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { addGamesSection, addTeamGamesSection } from "./widget-sections";
 
 // Function to create the widget
-export function createWidget(fetchScheduleResult: FetchScheduleResult) {
+export function createWidget(fetchScheduleResult: FetchScheduleResult, teamSchedules: { name: string, result: FetchScheduleResult }[]) {
     const widget = new ListWidget();
     widget.backgroundColor = new Color('#1E1E1E');
     
@@ -35,8 +35,9 @@ export function createWidget(fetchScheduleResult: FetchScheduleResult) {
         errorText.textColor = Color.red();
     } else {
       addGamesSection(gamesSectionStack, fetchScheduleResult.value);
-      addTeamGamesSection(gamesSectionStack, fetchScheduleResult.value, 'Lakers');
-      addTeamGamesSection(gamesSectionStack, fetchScheduleResult.value, '76ers');
+      for (const { name, result } of teamSchedules) {
+        addTeamGamesSection(gamesSectionStack, result, name);
+      }
     }
 
   
