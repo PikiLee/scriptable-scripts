@@ -1,5 +1,6 @@
 import { ICompetitor, IGame, ISchedule } from "./types";
 import { FetchScheduleResult } from "./fetch-schedule";
+import { Logos } from "./logos";
 import dayjs from "dayjs";
 import isToday from "dayjs/plugin/isToday";
 dayjs.extend(isToday)
@@ -46,6 +47,14 @@ function addRow(parent: WidgetStack, spacing = 4): WidgetStack {
   return row;
 }
 
+// Team logo (if loaded) followed by a label, e.g. [logo] "ORL 115"
+function addTeamChip(parent: WidgetStack, logos: Logos, abbr: string, label: string, font: Font, color: Color, logoSize: number, minScale = 0.7) {
+  const chip = addRow(parent, 3);
+  const logo = logos[abbr];
+  if (logo) chip.addImage(logo).imageSize = new Size(logoSize, logoSize);
+  addText(chip, label, font, color, minScale);
+}
+
 function addCard(parent: WidgetStack): WidgetStack {
   const card = parent.addStack();
   card.layoutVertically();
@@ -90,17 +99,21 @@ function addDayHeader(stack: WidgetStack, date: string) {
   stack.addSpacer(2);
 }
 
-// One line per game: "08:00  ORL @ CHA" or "ORL 115 @ CHA 120" (winner highlighted)
-function addGameRow(stack: WidgetStack, game: IGame) {
+const ROW_LOGO_SIZE = 14;
+
+// One line per game, away team first; logos separate the teams instead of "@":
+// "08:00 [ORL] [CHA]" or "[ORL] ORL 115 [CHA] CHA 120" (winner highlighted)
+function addGameRow(stack: WidgetStack, game: IGame, logos: Logos) {
   const { home, away, homeWins, awayWins } = getCompetitors(game);
   if (!home || !away) return;
 
-  const row = addRow(stack);
+  const row = addRow(stack, 6);
   const font = Font.mediumRoundedSystemFont(13);
 
   if (!hasStarted(game, home, away)) {
     addText(row, formatTime(game), Font.mediumMonospacedSystemFont(12), theme.secondary);
-    addText(row, `${teamLabel(away, awayWins)} @ ${teamLabel(home, homeWins)}`, font, theme.primary);
+    addTeamChip(row, logos, away.team.abbreviation, teamLabel(away, awayWins), font, theme.primary, ROW_LOGO_SIZE);
+    addTeamChip(row, logos, home.team.abbreviation, teamLabel(home, homeWins), font, theme.primary, ROW_LOGO_SIZE);
     return;
   }
 
@@ -110,12 +123,11 @@ function addGameRow(stack: WidgetStack, game: IGame) {
   const fontFor = (won: boolean) => completed && won ? Font.boldRoundedSystemFont(13) : font;
 
   if (!completed) addText(row, '●', Font.systemFont(8), theme.loss);
-  addText(row, `${teamLabel(away, awayWins)} ${away.score}`, fontFor(awayWon), colorFor(awayWon));
-  addText(row, '@', font, theme.secondary);
-  addText(row, `${teamLabel(home, homeWins)} ${home.score}`, fontFor(!awayWon), colorFor(!awayWon));
+  addTeamChip(row, logos, away.team.abbreviation, `${teamLabel(away, awayWins)} ${away.score}`, fontFor(awayWon), colorFor(awayWon), ROW_LOGO_SIZE);
+  addTeamChip(row, logos, home.team.abbreviation, `${teamLabel(home, homeWins)} ${home.score}`, fontFor(!awayWon), colorFor(!awayWon), ROW_LOGO_SIZE);
 }
 
-export function addGamesSection(parent: WidgetStack, schedule: ISchedule) {
+export function addGamesSection(parent: WidgetStack, schedule: ISchedule, logos: Logos) {
   const card = addCard(parent);
 
   // Fill as many days as fit in the line budget (always at least one)
@@ -135,7 +147,7 @@ export function addGamesSection(parent: WidgetStack, schedule: ISchedule) {
     if (games.length === 0) {
       addText(list, 'No games', Font.mediumRoundedSystemFont(13), theme.secondary);
     }
-    games.forEach(game => addGameRow(list, game));
+    games.forEach(game => addGameRow(list, game, logos));
   }
 
   // Stretch: this card takes the leftover width and the full height
@@ -144,8 +156,8 @@ export function addGamesSection(parent: WidgetStack, schedule: ISchedule) {
   card.addSpacer();
 }
 
-// "18 · 12:00" / "vs CHA" (month is a separate label); a started game keeps its time and adds a score line
-function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string) {
+// "18 · 12:00" / "vs [logo] CHA" (month is a separate label); a started game keeps its time and adds a score line
+function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string, logos: Logos) {
   const { home, away } = getCompetitors(game);
   if (!home || !away) return;
 
@@ -165,7 +177,11 @@ function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string) {
   addText(meta, d.format('D'), Font.boldRoundedSystemFont(13), dateColor, 1);
   addText(meta, `· ${formatTime(game)}`, Font.semiboldRoundedSystemFont(13), dateColor, 1);
 
-  addText(item, `${isHome ? 'vs' : '@'} ${them.team.abbreviation}`, Font.semiboldRoundedSystemFont(14), theme.primary, 1);
+  const opponent = addRow(item, 4);
+  const opponentFont = Font.semiboldRoundedSystemFont(14);
+  addText(opponent, isHome ? 'vs' : '@', opponentFont, theme.primary, 1);
+  // Only shrinks for width (e.g. "UTAH"); the card has no vertical overflow with TEAM_GAME_COUNT games
+  addTeamChip(opponent, logos, them.team.abbreviation, them.team.abbreviation, opponentFont, theme.primary, 16, 0.85);
 
   if (started) {
     const won = Number(us.score) > Number(them.score);
@@ -174,15 +190,21 @@ function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string) {
   }
 }
 
-export function addTeamGamesSection(parent: WidgetStack, team: TeamSection) {
+export function addTeamGamesSection(parent: WidgetStack, team: TeamSection, logos: Logos) {
   const card = addCard(parent);
   card.size = new Size(TEAM_CARD_WIDTH, 0);
 
   const header = addRow(card, 5);
-  const bar = header.addStack();
-  bar.size = new Size(3, 12);
-  bar.cornerRadius = 1.5;
-  bar.backgroundColor = new Color(team.color);
+  const teamLogo = logos[team.abbr];
+  if (teamLogo) {
+    header.addImage(teamLogo).imageSize = new Size(18, 18);
+  } else {
+    // Fallback when the logo couldn't be loaded
+    const bar = header.addStack();
+    bar.size = new Size(3, 12);
+    bar.cornerRadius = 1.5;
+    bar.backgroundColor = new Color(team.color);
+  }
   addText(header, team.name, Font.boldRoundedSystemFont(14), theme.primary, 1);
   card.addSpacer(6);
 
@@ -200,7 +222,7 @@ export function addTeamGamesSection(parent: WidgetStack, team: TeamSection) {
       if (gameMonth !== month) {
         addText(list, gameMonth, Font.boldRoundedSystemFont(11), theme.secondary, 1);
       }
-      addTeamGameRow(list, game, team.abbr);
+      addTeamGameRow(list, game, team.abbr, logos);
       month = gameMonth;
     }
     if (games.length === 0) {

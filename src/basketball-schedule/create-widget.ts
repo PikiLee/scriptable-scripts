@@ -1,9 +1,10 @@
 import { FetchScheduleResult } from "./fetch-schedule";
 import dayjs from "dayjs";
+import { Logos } from "./logos";
 import { addGamesSection, addScheduleError, addTeamGamesSection, TeamSection, theme } from "./widget-sections";
 
 // Function to create the widget
-export function createWidget(fetchScheduleResult: FetchScheduleResult, teams: TeamSection[]) {
+export function createWidget(fetchScheduleResult: FetchScheduleResult, teams: TeamSection[], logos: Logos) {
     const widget = new ListWidget();
     widget.setPadding(10, 10, 10, 10);
 
@@ -38,10 +39,10 @@ export function createWidget(fetchScheduleResult: FetchScheduleResult, teams: Te
     if (fetchScheduleResult.isErr()) {
       addScheduleError(columns, fetchScheduleResult);
     } else {
-      addGamesSection(columns, fetchScheduleResult.value);
+      addGamesSection(columns, fetchScheduleResult.value, logos);
     }
     for (const team of teams) {
-      addTeamGamesSection(columns, team);
+      addTeamGamesSection(columns, team, logos);
     }
 
     // set refresh interval to 6 hours
