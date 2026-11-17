@@ -166,7 +166,7 @@ export function addGamesSection(parent: WidgetStack, schedule: ISchedule, logos:
   card.addSpacer();
 }
 
-// "18 · 12:00" / "vs [logo] CHA" (day of month only); no score, it is in the all-games column
+// "18 · 12:00" / "vs [logo] CHA" (day of month; other months get a label above); no score, it is in the all-games column
 function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string, logos: Logos) {
   const { home, away } = getCompetitors(game);
   if (!home || !away) return;
@@ -216,7 +216,16 @@ export function addTeamGamesSection(parent: WidgetStack, team: TeamSection, logo
     list.layoutVertically();
     list.spacing = 7;
 
-    games.forEach(game => addTeamGameRow(list, game, team.abbr, logos));
+    // Games this month need no label; a later month gets one label (e.g. "DEC") before its first game
+    let month = dayjs().format('YYYY-MM');
+    for (const game of games) {
+      const d = dayjs(game.date);
+      if (d.format('YYYY-MM') !== month) {
+        month = d.format('YYYY-MM');
+        addText(list, d.format('MMM').toUpperCase(), Font.boldRoundedSystemFont(11), theme.secondary, 1);
+      }
+      addTeamGameRow(list, game, team.abbr, logos);
+    }
     if (games.length === 0) {
       addText(list, 'No games', Font.mediumRoundedSystemFont(13), theme.secondary);
     }
