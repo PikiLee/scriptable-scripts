@@ -97,5 +97,5 @@ export function addTeamGamesSection(parent: WidgetStack, schedule: ISchedule, te
     }
   }
 
-  addLimitedGamesSection(stack, teamSchedule, 3);
+  addLimitedGamesSection(stack, teamSchedule, 6);
 }
