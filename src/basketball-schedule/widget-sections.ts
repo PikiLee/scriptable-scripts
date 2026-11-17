@@ -104,7 +104,8 @@ function dayColor(d: dayjs.Dayjs): Color {
 function addDayHeader(stack: WidgetStack, date: string) {
   const d = dayjs(date);
   const isToday = d.isToday();
-  const label = isToday ? `TODAY · ${d.format('MM-DD')}` : d.format('ddd MM-DD').toUpperCase();
+  const dayLabel = d.format('ddd MM-DD').toUpperCase();
+  const label = isToday ? `TODAY · ${dayLabel}` : dayLabel;
   addText(stack, label, Font.boldRoundedSystemFont(12), dayColor(d));
   stack.addSpacer(2);
 }
@@ -166,7 +167,7 @@ export function addGamesSection(parent: WidgetStack, schedule: ISchedule, logos:
   card.addSpacer();
 }
 
-// "18 · 12:00" / "vs [logo] CHA" (day of month; other months get a label above); no score, it is in the all-games column
+// "18 WED 12:00" / "vs [logo] CHA" (day of month; other months get a label above); no score, it is in the all-games column
 function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string, logos: Logos) {
   const { home, away } = getCompetitors(game);
   if (!home || !away) return;
@@ -181,7 +182,9 @@ function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string, logos
   const meta = addRow(item, 3);
   const dateColor = dayColor(d);
   addText(meta, d.format('D'), Font.boldRoundedSystemFont(13), dateColor, 1);
-  addText(meta, `· ${formatTime(game)}`, Font.semiboldRoundedSystemFont(13), dateColor, 1);
+  // Smaller weekday takes the place of the "·" separator; may shrink slightly to fit the narrow card
+  addText(meta, d.format('ddd').toUpperCase(), Font.boldRoundedSystemFont(10), dateColor, 0.9);
+  addText(meta, formatTime(game), Font.semiboldRoundedSystemFont(13), dateColor, 0.9);
 
   const opponent = addRow(item, 4);
   const opponentFont = Font.semiboldRoundedSystemFont(14);
@@ -193,6 +196,7 @@ function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string, logos
 export function addTeamGamesSection(parent: WidgetStack, team: TeamSection, logos: Logos) {
   const card = addCard(parent);
   card.size = new Size(TEAM_CARD_WIDTH, 0);
+  card.setPadding(8, 6, 8, 6); // narrower sides leave room for the weekday
 
   const header = addRow(card, 5);
   const teamLogo = logos[team.abbr];
