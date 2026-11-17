@@ -3,13 +3,16 @@ import { FetchScheduleResult } from "./fetch-schedule";
 import { Logos } from "./logos";
 import dayjs from "dayjs";
 import isToday from "dayjs/plugin/isToday";
+import isTomorrow from "dayjs/plugin/isTomorrow";
 dayjs.extend(isToday)
+dayjs.extend(isTomorrow)
 
 export const theme = {
   card: new Color('#FFFFFF', 0.07),
   primary: Color.white(),
   secondary: new Color('#A1A1AA'),
   today: new Color('#FF9F0A'),
+  tomorrow: new Color('#64D2FF'),
   win: new Color('#30D158'),
   loss: new Color('#FF453A'),
 };
@@ -91,11 +94,18 @@ function teamLabel(c: ICompetitor, wins: number | undefined) {
   return `${c.team.abbreviation}${wins !== undefined ? `(${wins})` : ''}`;
 }
 
+// Highlight today and tomorrow; other days stay secondary
+function dayColor(d: dayjs.Dayjs): Color {
+  if (d.isToday()) return theme.today;
+  if (d.isTomorrow()) return theme.tomorrow;
+  return theme.secondary;
+}
+
 function addDayHeader(stack: WidgetStack, date: string) {
   const d = dayjs(date);
   const isToday = d.isToday();
   const label = isToday ? `TODAY · ${d.format('MM-DD')}` : d.format('ddd MM-DD').toUpperCase();
-  addText(stack, label, Font.boldRoundedSystemFont(12), isToday ? theme.today : theme.secondary);
+  addText(stack, label, Font.boldRoundedSystemFont(12), dayColor(d));
   stack.addSpacer(2);
 }
 
@@ -165,7 +175,6 @@ function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string, logos
   const us = isHome ? home : away;
   const them = isHome ? away : home;
   const d = dayjs(game.date);
-  const isToday = d.isToday();
   const started = hasStarted(game, home, away);
   const completed = game.status.type.completed;
 
@@ -173,7 +182,7 @@ function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string, logos
   item.layoutVertically();
 
   const meta = addRow(item, 3);
-  const dateColor = isToday ? theme.today : theme.secondary;
+  const dateColor = dayColor(d);
   addText(meta, d.format('D'), Font.boldRoundedSystemFont(13), dateColor, 1);
   addText(meta, `· ${formatTime(game)}`, Font.semiboldRoundedSystemFont(13), dateColor, 1);
 
