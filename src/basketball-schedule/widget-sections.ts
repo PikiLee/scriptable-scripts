@@ -24,8 +24,8 @@ export type TeamSection = {
   result: FetchScheduleResult;
 };
 
-// Fits a large widget on iPhone Pro Max, with room for a score line or a month label
-const TEAM_GAME_COUNT = 6;
+// Fills a large widget on iPhone Pro Max (scores are shown in the all-games column, not team cards)
+const TEAM_GAME_COUNT = 7;
 // Fixed so the all-games card gets the remaining width
 const TEAM_CARD_WIDTH = 92;
 // Rough line budget for the all-games card, so it never overflows the widget
@@ -166,17 +166,14 @@ export function addGamesSection(parent: WidgetStack, schedule: ISchedule, logos:
   card.addSpacer();
 }
 
-// "18 · 12:00" / "vs [logo] CHA" (month is a separate label); a started game keeps its time and adds a score line
+// "18 · 12:00" / "vs [logo] CHA" (day of month only); no score, it is in the all-games column
 function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string, logos: Logos) {
   const { home, away } = getCompetitors(game);
   if (!home || !away) return;
 
   const isHome = home.team.abbreviation === teamAbbr;
-  const us = isHome ? home : away;
   const them = isHome ? away : home;
   const d = dayjs(game.date);
-  const started = hasStarted(game, home, away);
-  const completed = game.status.type.completed;
 
   const item = stack.addStack();
   item.layoutVertically();
@@ -191,12 +188,6 @@ function addTeamGameRow(stack: WidgetStack, game: IGame, teamAbbr: string, logos
   addText(opponent, isHome ? 'vs' : '@', opponentFont, theme.primary, 1);
   // Only shrinks for width (e.g. "UTAH"); the card has no vertical overflow with TEAM_GAME_COUNT games
   addTeamChip(opponent, logos, them.team.abbreviation, them.team.abbreviation, opponentFont, theme.primary, 16, 0.85);
-
-  if (started) {
-    const won = Number(us.score) > Number(them.score);
-    const result = completed ? `${won ? 'W' : 'L'} ${us.score}-${them.score}` : `LIVE ${us.score}-${them.score}`;
-    addText(item, result, Font.boldRoundedSystemFont(13), !completed ? theme.today : won ? theme.win : theme.loss, 1);
-  }
 }
 
 export function addTeamGamesSection(parent: WidgetStack, team: TeamSection, logos: Logos) {
@@ -225,15 +216,7 @@ export function addTeamGamesSection(parent: WidgetStack, team: TeamSection, logo
     list.layoutVertically();
     list.spacing = 7;
 
-    let month: string | undefined;
-    for (const game of games) {
-      const gameMonth = dayjs(game.date).format('MMM').toUpperCase();
-      if (gameMonth !== month) {
-        addText(list, gameMonth, Font.boldRoundedSystemFont(11), theme.secondary, 1);
-      }
-      addTeamGameRow(list, game, team.abbr, logos);
-      month = gameMonth;
-    }
+    games.forEach(game => addTeamGameRow(list, game, team.abbr, logos));
     if (games.length === 0) {
       addText(list, 'No games', Font.mediumRoundedSystemFont(13), theme.secondary);
     }
