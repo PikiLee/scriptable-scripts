@@ -28,9 +28,10 @@ export type TeamSection = {
 const TEAM_GAME_COUNT = 7;
 // Fixed so the all-games card gets the remaining width
 const TEAM_CARD_WIDTH = 92;
-// Rough line budget for the all-games card, so it never overflows the widget
-const MAX_LINES = 17;
-const DAY_HEADER_LINES = 1.5;
+// Row budget for the all-games card, measured on a large widget on iPhone Pro Max (~17pt per game row)
+const MAX_LINES = 19;
+const FIRST_HEADER_LINES = 1;  // day header
+const DAY_HEADER_LINES = 1.4;  // gap + day header
 
 // minScale < 1 lets text shrink to fit; team cards pass 1 so overflow clips the bottom instead of shrinking text
 function addText(stack: WidgetStack, text: string, font: Font, color: Color, minScale = 0.7): WidgetText {
@@ -141,16 +142,18 @@ function addGameRow(stack: WidgetStack, game: IGame, logos: Logos) {
 export function addGamesSection(parent: WidgetStack, schedule: ISchedule, logos: Logos) {
   const card = addCard(parent);
 
-  // Fill as many days as fit in the line budget (always at least one)
+  // Fill the card row by row; a day that doesn't fully fit shows what fits plus "+N more"
   let lines = 0;
-  let first = true;
-  for (const [day, games] of Object.entries(schedule)) {
-    const dayLines = DAY_HEADER_LINES + Math.max(games.length, 1);
-    if (!first && lines + dayLines > MAX_LINES) break;
-    if (!first) card.addSpacer(6);
-    first = false;
-    lines += dayLines;
+  for (const [i, [day, games]] of Object.entries(schedule).entries()) {
+    const headerLines = i === 0 ? FIRST_HEADER_LINES : DAY_HEADER_LINES;
+    const room = Math.floor(MAX_LINES - lines - headerLines);
+    if (i > 0 && room < 2) break; // not enough room for a game and a "+N more" line
 
+    const rows = Math.max(games.length, 1);
+    const fits = rows <= room;
+    const shown = fits ? games : games.slice(0, Math.max(room - 1, 1));
+
+    if (i > 0) card.addSpacer(6);
     addDayHeader(card, day);
     const list = card.addStack();
     list.layoutVertically();
@@ -158,7 +161,12 @@ export function addGamesSection(parent: WidgetStack, schedule: ISchedule, logos:
     if (games.length === 0) {
       addText(list, 'No games', Font.mediumRoundedSystemFont(13), theme.secondary);
     }
-    games.forEach(game => addGameRow(list, game, logos));
+    shown.forEach(game => addGameRow(list, game, logos));
+    if (!fits) {
+      addText(list, `+${games.length - shown.length} more`, Font.semiboldRoundedSystemFont(12), theme.secondary);
+      break;
+    }
+    lines += headerLines + rows;
   }
 
   // Stretch: this card takes the leftover width and the full height
